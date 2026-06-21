@@ -18,17 +18,25 @@ if __name__ == "__main__":
     parser.add_argument('--end', type=str, default=data_end, help='Data end character (default: "\\n")')
     args = parser.parse_args()
 
-    ser = serial.Serial(args.port, args.baudrate, timeout=1)
+    try:
+        ser = serial.Serial(args.port, args.baudrate, timeout=1)
+    except serial.SerialException as e:
+        print(f"[ERROR] Could not open port {args.port}: {e}")
+        exit(1)
 
     with open(args.output, 'w', newline='') as f:
         print(f"Logging to '{args.output}' on {args.port} at {args.baudrate} baud. Press Ctrl+C to stop.")
         try:
             while True:
-                line = ser.readline().decode().strip()
+                raw = ser.read_until(args.end.encode()).decode()
+                # Strip the end delimiter and surrounding whitespace
+                if raw.endswith(args.end):
+                    raw = raw[:-len(args.end)]
+                line = raw.strip()
                 if line:
-                    fields = line.split(data_separator)
+                    fields = line.split(args.separator)
                     timestamp = datetime.datetime.now().isoformat()
-                    f.write(timestamp + data_separator + data_separator.join(fields) + data_end)
+                    f.write(timestamp + args.separator + args.separator.join(fields) + args.end)
                     f.flush()
                     print(f"[{timestamp}] {fields}")
 

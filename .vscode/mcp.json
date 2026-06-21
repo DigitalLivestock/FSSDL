@@ -1,0 +1,9 @@
+{
+    "servers": {
+        "fssdl": {
+            "type": "stdio",
+            "command": "python",
+            "args": ["${workspaceFolder}/mcp-server.py"]
+        }
+    }
+}
